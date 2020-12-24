@@ -15,8 +15,8 @@ class InvoiceLine
         $this->item = $item;
         $this->quantity = $quantity;
         $this->unitPrice = $unitPrice;
-        $this->$discountRate = $discountRate;
-        $this->$taxRate = $taxRate;
+        $this->discountRate = $this->ensureBetween($discountRate, 0, 1);
+        $this->taxRate = $this->ensureBetween($taxRate, 0, 1);
     }
 
     /**
@@ -29,6 +29,16 @@ class InvoiceLine
         return $this->unitPrice * $this->quantity;
     }
 
+    function discountValue()
+    {
+        return $this->grossTotal() * $this->discountRate;
+    }
+
+    function taxValue()
+    {
+        return $this->totalAfterDiscount() * $this->taxRate;
+    }
+
     /**
      * Total after discount without and before calculating the tax
      *
@@ -36,7 +46,7 @@ class InvoiceLine
      */
     public function totalAfterDiscount()
     {
-        return $this->grossTotal() * (1 - $this->discountRate);
+        return $this->grossTotal() * (1 - $this->taxRate);
     }
 
     /**
@@ -47,5 +57,10 @@ class InvoiceLine
     public function totalAfterTax()
     {
         return $this->totalAfterDiscount() * (1 + $this->taxRate);
+    }
+
+    private function ensureBetween($value, $min, $max)
+    {
+        return min($max, max($min, $value));
     }
 }
