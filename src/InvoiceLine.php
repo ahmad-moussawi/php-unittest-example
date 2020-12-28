@@ -46,7 +46,7 @@ class InvoiceLine
      */
     public function totalAfterDiscount()
     {
-        return $this->grossTotal() * (1 - $this->taxRate);
+        return $this->grossTotal() * (1 - $this->discountRate);
     }
 
     /**

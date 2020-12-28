@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types = 1);
 
 use App\InvoiceLine;
 use PHPUnit\Framework\TestCase;
@@ -49,7 +49,7 @@ final class InvoiceLineTest extends TestCase
         $this->assertSame($line->grossTotal(), $line->totalAfterDiscount());
     }
 
-    function discount_value_calculation()
+    public function discount_value_calculation()
     {
         $line = new InvoiceLine("Item", 100, 2, 0.1);
         $this->assertSame(20, $line->discountValue());
@@ -101,7 +101,7 @@ final class InvoiceLineTest extends TestCase
     public function after_tax_total_should_take_tax_rate_into_consideration()
     {
         $line = new InvoiceLine("Brushing", 10, 1, 0, 0.1);
-        $this->assertSame(1, $line->taxValue());
-        $this->assertSame(1.1, $line->totalAfterTax());
+        $this->assertSame(1.0, $line->taxValue());
+        $this->assertSame(11.0, $line->totalAfterTax());
     }
 }
