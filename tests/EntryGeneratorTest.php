@@ -35,9 +35,9 @@ class EntryGeneratorTest extends TestCase
 
         $entries = $this->generator->generate($invoice);
 
-        $this->assertCount(1, $entries);
-
-        $this->assertEquals(10, $entries[0]['credit']);
+        $this->assertLedgerEntries([
+            ['credit' => 10, 'account' => 'SALE'],
+        ], $entries);
     }
 
     /** @test */
@@ -51,9 +51,12 @@ class EntryGeneratorTest extends TestCase
 
         $entries = $this->generator->generate($invoice);
 
-        $this->assertCount(1, $entries);
-
-        $this->assertEquals(9.0, $entries[0]['credit']);
+        $this->assertLedgerEntries([
+            [
+                'credit' => 9.0,
+                'account' => 'SALE',
+            ],
+        ], $entries);
     }
 
     /** @test */
@@ -67,12 +70,10 @@ class EntryGeneratorTest extends TestCase
 
         $entries = $this->generator->generate($invoice);
 
-        $this->assertCount(2, $entries);
-        $this->assertEquals(10, $entries[0]['credit']);
-        $this->assertEquals('SALE', $entries[0]['account']);
-
-        $this->assertEquals(5.0, $entries[1]['credit']);
-        $this->assertEquals('TAX', $entries[1]['account']);
+        $this->assertLedgerEntries([
+            ['credit' => 10, 'account' => 'SALE'],
+            ['credit' => 5.0, 'account' => 'TAX'],
+        ], $entries);
     }
 
     /** @test */
@@ -86,9 +87,10 @@ class EntryGeneratorTest extends TestCase
 
         $entries = $this->generator->generate($invoice);
 
-        $this->assertCount(2, $entries);
-        $this->assertEquals(9.0, $entries[0]['credit']);
-        $this->assertEquals(9 * 0.5, $entries[1]['credit']);
+        $this->assertLedgerEntries([
+            ['credit' => 9.0, 'account' => 'SALE'],
+            ['credit' => 9 * 0.5, 'account' => 'TAX'],
+        ], $entries);
     }
 
     /** @test */
@@ -104,11 +106,44 @@ class EntryGeneratorTest extends TestCase
 
         $this->assertCount(2, $entries);
 
-        $this->assertEquals(20, $entries[0]['debit']);
-        $this->assertEquals('DISCOUNT', $entries[0]['account']);
+        $this->assertLedgerEntries([
+            ['debit' => 20, 'account' => 'DISCOUNT'],
+            ['credit' => 100, 'account' => 'SALE'],
+        ], $entries);
+    }
 
-        $this->assertEquals(100, $entries[1]['credit']);
-        $this->assertEquals('SALE', $entries[1]['account']);
+    /** @test */
+    public function only_simple()
+    {
+        $arr = [
+            ['a' => 1, 'b' => 2, 'c' => 3],
+            ['a' => 4, 'b' => 5, 'c' => 6],
+        ];
+
+        $this->assertEquals([
+            ['a' => 1, 'b' => 2],
+            ['b' => 5, 'a' => 4],
+        ], $this->array_only($arr, ['a', 'b']));
+    }
+
+    private function assertLedgerEntries(array $expected, array $actual, array $keys = ['account', 'debit', 'credit'])
+    {
+        return $this->assertEquals($expected, $this->array_only($actual, $keys));
+    }
+
+    private function array_only(array $arr, array $keys)
+    {
+        return array_map(function ($row) use ($keys) {
+            $mapped = [];
+
+            foreach ($keys as $key) {
+                if (array_key_exists($key, $row)) {
+                    $mapped[$key] = $row[$key];
+                }
+            }
+
+            return $mapped;
+        }, $arr);
     }
 
 }
