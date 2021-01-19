@@ -4,5 +4,9 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^9.3"
+    },
+    "require": {
+        "illuminate/collections": "^8.22",
+        "symfony/console": "^5.2"
     }
 }

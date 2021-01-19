@@ -2,6 +2,8 @@
 
 namespace App;
 
+use Illuminate\Support\Collection;
+
 class EntryGenerator
 {
 
@@ -11,7 +13,7 @@ class EntryGenerator
     private $discountAccount = 'DISCOUNT';
     private $taxAccount = 'TAX';
 
-    public function generate(Operation $operation): array
+    public function generate(Operation $operation): Collection
     {
         if ($operation instanceof Invoice) {
             return $this->generateInvoice($operation);
@@ -20,38 +22,39 @@ class EntryGenerator
 
     public function generateInvoice(Invoice $invoice)
     {
-        $entries = [];
+        $entries = collect();
 
-        if ($invoice->getDiscountRate() > 0) {
-            $entries[] = [
-                'account' => $this->discountAccount,
-                'debit' => $invoice->discountValue(),
-            ];
-        }
+        $entries->add([
+            'account' => $this->salesAccount,
+            'amount' => -$invoice->subtotal(),
+        ]);
 
-        $lines = $invoice->getLines();
-        $count = count($lines);
+        // add tax
+        $entries->add([
+            'account' => $this->taxAccount,
+            'amount' => -$invoice->taxValue(),
+        ]);
 
-        for ($i = 0; $i < $count; $i++) {
+        // add discount
+        $entries->add([
+            'account' => $this->discountAccount,
+            'amount' => $invoice->discountValue(),
+        ]);
 
-            /** @var InvoiceLine $line */
-            $line = $lines[$i];
+        // add payment
+        // $entries->add([
+        //     'account' => $this->cashAccount,
+        //     'amount' => $invoice->totalPaid(),
+        // ]);
 
-            $entries[] = [
-                'account' => $this->salesAccount,
-                'credit' => $line->totalAfterDiscount(),
-            ];
+        // add the remaining debit on account
+        $entries->add([
+            'account' => $this->clientAccount,
+            'amount' => 0 - $entries->sum('amount'),
+        ]);
 
-            if ($line->taxRate) {
-                $entries[] = [
-                    'account' => $this->taxAccount,
-                    'credit' => $line->taxValue(),
-                    'description' => "Added tax for item #{($i + 1)} {$line->item}",
-                ];
-            }
-
-        }
-
-        return $entries;
+        return $entries
+            ->where('amount', '!=', 0)
+            ->sortByDesc('amount')->values();
     }
 }

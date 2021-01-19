@@ -19,6 +19,28 @@ class InvoiceLine
         $this->taxRate = $this->ensureBetween($taxRate, 0, 1);
     }
 
+    public function taxRate()
+    {
+        if (\func_num_args() === 0) {
+            return $this->taxRate;
+        }
+
+        $this->taxRate = $this->ensureBetween(\func_get_arg(0), 0, 1);
+
+        return $this;
+    }
+
+    public function discountRate()
+    {
+        if (\func_num_args() === 0) {
+            return $this->discountRate;
+        }
+
+        $this->discountRate = $this->ensureBetween(\func_get_arg(0), 0, 1);
+
+        return $this;
+    }
+
     /**
      * Gross total, before calculating the discount and tax
      *
@@ -29,12 +51,12 @@ class InvoiceLine
         return $this->unitPrice * $this->quantity;
     }
 
-    function discountValue()
+    public function discountValue()
     {
         return $this->grossTotal() * $this->discountRate;
     }
 
-    function taxValue()
+    public function taxValue()
     {
         return $this->totalAfterDiscount() * $this->taxRate;
     }
