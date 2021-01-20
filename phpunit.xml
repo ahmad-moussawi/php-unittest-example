@@ -11,6 +11,7 @@
          beStrictAboutTodoAnnotatedTests="true"
          failOnRisky="true"
          failOnWarning="true"
+         printerClass="NunoMaduro\Collision\Adapters\Phpunit\Printer"
          verbose="true">
     <testsuites>
         <testsuite name="default">
